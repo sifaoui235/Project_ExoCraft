@@ -86,44 +86,75 @@ export const authApi = {
 
 // ── Stats ──────────────────────────────────────────────────────────────────
 export const statsApi = {
-  get() { return request('/stats') },
+  get() {
+    return request('/stats').then(res => {
+      // Normaliser la réponse vers le format attendu par Dashboard.jsx
+      return {
+        totalUsers: res?.users?.total ?? 0,
+        totalEnseignants: res?.users?.enseignants ?? 0,
+        activeEnseignants: res?.users?.actifs ?? res?.users?.enseignants ?? 0,
+        totalMatieres: res?.matieres?.total ?? 0,
+        totalDocs: res?.archives?.total ?? 0,
+        totalArchives: res?.archives?.total ?? 0,
+        totalGenerations: res?.generations?.total ?? 0,
+        thisMonthGenerations: 0,
+        contentsByType: [
+          { type: 'Quiz',      count: res?.quiz?.total ?? 0,         color: '#5b4fcf' },
+          { type: 'Cours',     count: res?.contenus?.parType?.cours ?? 0,  color: '#00b894' },
+          { type: 'Examen',    count: res?.contenus?.parType?.examen ?? 0, color: '#e17055' },
+          { type: 'Exercices', count: res?.contenus?.parType?.serie ?? 0,  color: '#f39c12' },
+          { type: 'Résumé',    count: res?.contenus?.parType?.resume ?? 0, color: '#4a90e2' },
+        ],
+        recentActivity: [],
+      }
+    })
+  },
 }
 
 // ── Users ──────────────────────────────────────────────────────────────────
 export const usersApi = {
   list(params) {
     const q = params ? new URLSearchParams(params).toString() : ''
-    return request(`/users${q ? `?${q}` : ''}`)
+    return request(`/admin/users${q ? `?${q}` : ''}`)
   },
   create(data) {
-    return request('/users', { method: 'POST', body: JSON.stringify(data) })
+    // Le backend attend motDePasse (pas password)
+    const payload = {
+      nom: data.nom,
+      prenom: data.prenom,
+      email: data.email,
+      motDePasse: data.password || data.motDePasse || 'Exocraft@2024',
+      role: data.role || 'enseignant',
+      status: data.status,
+    }
+    return request('/admin/users', { method: 'POST', body: JSON.stringify(payload) })
   },
   update(id, data) {
-    return request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+    return request(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) })
   },
   delete(id) {
-    return request(`/users/${id}`, { method: 'DELETE' })
+    return request(`/admin/users/${id}`, { method: 'DELETE' })
   },
   toggleStatus(id) {
-    return request(`/users/${id}/status`, { method: 'PATCH' })
+    return request(`/admin/users/${id}/status`, { method: 'PATCH' })
   },
   promote(id) {
-    return request(`/users/${id}/promote`, { method: 'PATCH' })
+    return request(`/admin/users/${id}/promote`, { method: 'PATCH' })
   },
 }
 
 // ── Promos ─────────────────────────────────────────────────────────────────
 export const promosApi = {
-  list() { return request('/promos') },
-  get(id) { return request(`/promos/${id}`) },
+  list() { return request('/promotions') },
+  get(id) { return request(`/promotions/${id}`) },
   create(data) {
-    return request('/promos', { method: 'POST', body: JSON.stringify(data) })
+    return request('/promotions', { method: 'POST', body: JSON.stringify(data) })
   },
   update(id, data) {
-    return request(`/promos/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+    return request(`/promotions/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
   },
   delete(id) {
-    return request(`/promos/${id}`, { method: 'DELETE' })
+    return request(`/promotions/${id}`, { method: 'DELETE' })
   },
 }
 
@@ -145,7 +176,7 @@ export const matieresApi = {
     return request('/matieres', { method: 'POST', body: JSON.stringify(data) })
   },
   update(id, data) {
-    return request(`/matieres/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+    return request(`/matieres/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
   },
   delete(id) {
     return request(`/matieres/${id}`, { method: 'DELETE' })
@@ -211,7 +242,18 @@ export const archivesApi = {
 
 // ── Associations ───────────────────────────────────────────────────────────
 export const associationsApi = {
-  list() { return request('/associations') },
+  list() {
+    return request('/associations').then(res => {
+      // Normaliser : le backend retourne { matiereNoms, promoNoms }
+      // La page attend { matieres: [], promos: [] }
+      if (!Array.isArray(res)) return []
+      return res.map(t => ({
+        ...t,
+        matieres: t.matiereNoms || t.matieres || [],
+        promos:   t.promoNoms   || t.promos   || [],
+      }))
+    })
+  },
   save(userId, matiereNoms, promoNoms) {
     return request(`/associations/${userId}`, {
       method: 'PUT',
