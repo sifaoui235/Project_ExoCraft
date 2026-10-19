@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from './auth/guards/roles.guard.js';
+import { AuthService } from './auth/auth.service.js';
 
 async function bootstrap() {
   const app: any = await NestFactory.create(AppModule);
@@ -46,6 +47,23 @@ async function bootstrap() {
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory);
+
+  // ── Seed admin par défaut ────────────────────────────
+  // Crée le compte admin au démarrage s'il n'existe pas encore
+  const authService = app.get(AuthService);
+  try {
+    await authService.register({
+      nom: 'Admin',
+      prenom: 'Système',
+      email: 'admin@tekup.tn',
+      motDePasse: 'admin@1234',
+      role: 'admin',
+    } as any);
+    console.log('✅ Compte admin créé : admin@tekup.tn / admin@1234');
+  } catch {
+    // Déjà existant — pas d'action nécessaire
+    console.log('ℹ️  Compte admin déjà existant.');
+  }
 
   await app.listen(process.env.PORT ?? 3000);
 }

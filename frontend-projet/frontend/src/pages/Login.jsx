@@ -23,8 +23,13 @@ function Login() {
 
     setLoading(true);
     try {
-      await login({ email: email.trim(), password });
-      navigate("/dashboard");
+      const loggedUser = await login({ email: email.trim(), password });
+      const role = loggedUser?.role?.toLowerCase();
+      if (role === 'admin' || role === 'administrateur') {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError(err.message || "Email ou mot de passe incorrect.");
     } finally {
