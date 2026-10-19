@@ -35,6 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // Ce que retourne validate() sera injecté dans req.user
   validate(payload: JwtPayload) {
     return {
+      sub: payload.sub,
       id: payload.sub,
       email: payload.email,
       role: payload.role,
