@@ -1,0 +1,88 @@
+{
+  "project_type": "NestJS backend (TypeScript) + React/Vite frontend (JSX)",
+  "language": "JavaScript (frontend JSX), TypeScript (backend)",
+  "build_system": "Vite (frontend) — build command: npm run build; dev: npm run dev. Backend: NestJS with npm run start:dev. Vite proxy in vite.config.js forwards /api to backend.",
+  "test_framework": "None currently configured on the frontend. Backend has Jest (spec files exist).",
+  "build_command": "cd c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\frontend-projet\\frontend && npm run build",
+  "test_command": "cd c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\frontend-projet\\frontend && npm run build",
+  "verification_instructions": "Run `npm run build` in the frontend directory. Build must complete with no errors. Then run dev server with `npm run dev` and visually confirm each new page renders at its route.",
+  "snapshot_or_generated_files": null,
+  "environment_constraints": "Windows PowerShell. Frontend dir: c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\frontend-projet\\frontend. Backend dir: c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\backend-projet\\library-management. All frontend edits go in the frontend/src folder. Never edit backend source for this task.",
+  "contribution_requirements": "Use existing api.js functions only — never fetch directly or use localStorage for API data. Follow workspace.css + App.css class naming. Never overwrite App.css — only append at end.",
+  "key_patterns": "Pages wrap content in <DashboardLayout activePage='xxx'>. States: const [loading, setLoading] = useState(false); const [error, setError] = useState(''); const [items, setItems] = useState([]). API calls in useEffect or event handlers, wrapped in try/catch with finally { setLoading(false) }. Error shown with <p className='workspace-error'>. Success notice with <p className='workspace-notice'>. Cards use workspace-cards > workspace-card > workspace-card-top / workspace-badge / workspace-card-actions pattern. Filters use workspace-filters grid. Empty state uses workspace-empty.",
+  "relevant_files": [
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\frontend-projet\\frontend\\src\\services\\api.js",
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\frontend-projet\\frontend\\src\\pages\\AiGenerator.jsx",
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\frontend-projet\\frontend\\src\\components\\DashboardLayout.jsx",
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\frontend-projet\\frontend\\src\\App.jsx",
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\frontend-projet\\frontend\\src\\App.css",
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\frontend-projet\\frontend\\src\\workspace.css",
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\frontend-projet\\frontend\\src\\context\\AuthContext.jsx",
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\backend-projet\\library-management\\src\\quiz\\entities\\quiz.entity.ts",
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\backend-projet\\library-management\\src\\quiz\\entities\\question.entity.ts",
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\backend-projet\\library-management\\src\\content\\entities\\content.entity.ts",
+    "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\backend-projet\\library-management\\src\\archive\\entities\\archive.entity.ts"
+  ],
+  "directory_structure": "frontend/src/pages/ — page components (Home, Login, Register, Dashboard, Archives, Settings, AiGenerator). frontend/src/components/ — DashboardLayout, ContentWorkspace, navbar, ProtectedRoute. frontend/src/context/ — AuthContext (user, login, logout, useAuth). frontend/src/services/ — api.js (all API calls), contentStore.js (localStorage legacy). frontend/src/App.jsx — BrowserRouter + Routes. frontend/src/App.css — global styles. frontend/src/workspace.css — reusable workspace UI classes.",
+  "api_reference": {
+    "quizApi": {
+      "getAll": "quizApi.getAll({ matiere, statut, niveau, page, limit }) → { data: Quiz[], total, page, limit }",
+      "getOne": "quizApi.getOne(id) → Quiz with questions[]",
+      "create": "quizApi.create({ titre, theme, matiere, niveau?, visibilite? }) → Quiz",
+      "update": "quizApi.update(id, { titre?, theme?, matiere?, niveau?, visibilite? }) → Quiz",
+      "remove": "quizApi.remove(id) → null",
+      "valider": "quizApi.valider(id) → Quiz",
+      "publier": "quizApi.publier(id) → Quiz (toggles prive/public)",
+      "creerVariante": "quizApi.creerVariante(id) → Quiz (new copy)",
+      "addQuestion": "quizApi.addQuestion(quizId, { enonce, choixA, choixB, choixC, choixD, reponseCorrecte, explication }) → Question",
+      "updateQuestion": "quizApi.updateQuestion(quizId, questionId, partialQuestion) → Question",
+      "removeQuestion": "quizApi.removeQuestion(quizId, questionId) → null"
+    },
+    "contentApi": {
+      "getMesContenus": "contentApi.getMesContenus({ type?, matiere?, page?, limit? }) → { data: Content[], total }",
+      "getPublic": "contentApi.getPublic({ type?, matiere?, page?, limit? }) → { data: Content[], total }",
+      "getOne": "contentApi.getOne(id) → Content",
+      "create": "contentApi.create({ titre, type, matiere, theme, contenu }) → Content",
+      "update": "contentApi.update(id, partial) → Content",
+      "remove": "contentApi.remove(id) → null",
+      "valider": "contentApi.valider(id) → Content",
+      "publier": "contentApi.publier(id) → Content (toggles visibilite)",
+      "dupliquer": "contentApi.dupliquer(id) → Content (new copy)"
+    },
+    "archiveApi": {
+      "getAll": "archiveApi.getAll({ matiere?, promotion?, page?, limit? }) → { data: Archive[], total }",
+      "getTexte": "archiveApi.getTexte(id) → { texte: string }",
+      "upload": "archiveApi.upload(file, matiere, promotion) → Archive",
+      "remove": "archiveApi.remove(id) → null"
+    },
+    "exportApi": {
+      "quizPdfUrl": "exportApi.quizPdfUrl(id, corrige=false) → URL string",
+      "quizWordUrl": "exportApi.quizWordUrl(id, corrige=false) → URL string",
+      "contentPdfUrl": "exportApi.contentPdfUrl(id) → URL string",
+      "contentWordUrl": "exportApi.contentWordUrl(id) → URL string",
+      "download": "exportApi.download(url) → opens new tab with token in URL"
+    },
+    "adminApi": {
+      "getDashboard": "adminApi.getDashboard() → { totalUsers, totalQuiz, totalContenus, ... }",
+      "getUsers": "adminApi.getUsers() → User[]",
+      "deleteUser": "adminApi.deleteUser(id) → null",
+      "assignerMatieres": "adminApi.assignerMatieres(id, matieres[]) → User",
+      "assignerPromotions": "adminApi.assignerPromotions(id, promotions[]) → User"
+    },
+    "matiereApi": {
+      "getAll": "matiereApi.getAll() → Matiere[]",
+      "create": "matiereApi.create({ nom, description }) → Matiere",
+      "update": "matiereApi.update(id, partial) → Matiere",
+      "remove": "matiereApi.remove(id) → null"
+    },
+    "promotionApi": {
+      "getAll": "promotionApi.getAll() → Promotion[]",
+      "create": "promotionApi.create({ nom, description }) → Promotion",
+      "update": "promotionApi.update(id, partial) → Promotion",
+      "remove": "promotionApi.remove(id) → null"
+    },
+    "aiApi": {
+      "generateFromArchive": "aiApi.generateFromArchive(archiveId, { matiere, type, theme, ... }) → { contenu: string }"
+    }
+  }
+}
