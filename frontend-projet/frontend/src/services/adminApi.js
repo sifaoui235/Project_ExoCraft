@@ -77,9 +77,13 @@ export const authApi = {
     return request('/auth/me')
   },
   changePassword(currentPassword, newPassword) {
+    // Le backend attend ancienMotDePasse / nouveauMotDePasse
     return request('/auth/password', {
       method: 'PATCH',
-      body: JSON.stringify({ currentPassword, newPassword }),
+      body: JSON.stringify({
+        ancienMotDePasse: currentPassword,
+        nouveauMotDePasse: newPassword,
+      }),
     })
   },
 }

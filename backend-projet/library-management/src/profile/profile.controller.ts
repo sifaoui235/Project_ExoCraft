@@ -12,9 +12,28 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 import { UserService } from '../user/user.service.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+
+// Format de réponse attendu par la page Profile du frontend admin
+function formatProfile(user: any) {
+  return {
+    id:            user.id,
+    nom:           user.nom           ?? '',
+    prenom:        user.prenom        ?? '',
+    email:         user.email         ?? '',
+    role:          user.role          ?? '',
+    avatar:        user.avatar        ?? null,
+    bio:           user.bio           ?? '',
+    // Champs supplémentaires (stockés sur l'entité User, avec valeur par défaut)
+    telephone:     user.telephone     ?? '',
+    poste:         user.poste         ?? 'Administrateur',
+    departement:   user.departement   ?? 'Administration',
+    etablissement: user.etablissement ?? 'TekUp',
+  };
+}
 
 @Controller('profile')
 @UseGuards(JwtAuthGuard)
@@ -26,36 +45,23 @@ export class ProfileController {
   getProfile(@CurrentUser() currentUser: { sub: number }) {
     const user = this.userService.findOne(currentUser.sub);
     if (!user) throw new UnauthorizedException('Utilisateur introuvable');
-    return {
-      id: user.id,
-      nom: user.nom,
-      prenom: user.prenom,
-      email: user.email,
-      role: user.role,
-      avatar: user.avatar ?? null,
-      bio: user.bio ?? '',
-    };
+    return formatProfile(user);
   }
 
   // PUT /profile
   @Put()
   updateProfile(
     @CurrentUser() currentUser: { sub: number },
-    @Body() body: { nom?: string; prenom?: string; bio?: string },
+    @Body() body: {
+      nom?: string; prenom?: string; bio?: string;
+      telephone?: string; poste?: string; departement?: string; etablissement?: string;
+    },
   ) {
     const user = this.userService.findOne(currentUser.sub);
     if (!user) throw new UnauthorizedException('Utilisateur introuvable');
     const updated = this.userService.update(currentUser.sub, body as any);
     if (!updated) throw new UnauthorizedException('Utilisateur introuvable');
-    return {
-      id: updated.id,
-      nom: updated.nom,
-      prenom: updated.prenom,
-      email: updated.email,
-      role: updated.role,
-      avatar: updated.avatar ?? null,
-      bio: updated.bio ?? '',
-    };
+    return formatProfile(updated);
   }
 
   // POST /profile/avatar
@@ -63,7 +69,11 @@ export class ProfileController {
   @UseInterceptors(
     FileInterceptor('avatar', {
       storage: diskStorage({
-        destination: join(process.cwd(), 'uploads', 'avatars'),
+        destination: (req, file, cb) => {
+          const dir = join(process.cwd(), 'uploads', 'avatars');
+          if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+          cb(null, dir);
+        },
         filename: (_req, file, cb) => {
           const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(null, unique + extname(file.originalname));
@@ -79,6 +89,6 @@ export class ProfileController {
     if (!file) throw new UnauthorizedException('Aucun fichier fourni');
     const avatarUrl = `/uploads/avatars/${file.filename}`;
     this.userService.update(currentUser.sub, { avatar: avatarUrl } as any);
-    return { avatarUrl };
+    return { avatar: avatarUrl };
   }
 }

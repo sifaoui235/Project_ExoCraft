@@ -8,6 +8,11 @@ export class User {
   actif?: boolean;
   avatar?: string | null;
   bio?: string;
+  // Champs profil admin
+  telephone?: string;
+  poste?: string;
+  departement?: string;
+  etablissement?: string;
   // associations classes/sections envoyées par le frontend de Rami
   associations: Array<{ className: string; section: string }>;
 }
