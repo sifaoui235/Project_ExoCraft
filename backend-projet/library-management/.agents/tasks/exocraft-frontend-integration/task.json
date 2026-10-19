@@ -1,7 +1,0 @@
-{
-  "task_id": "task-exocraft-frontend-integration",
-  "task_description": "Integrate the ExoCraft NestJS backend into the React/Vite frontend. Create 4 new pages (QuizManager, ContentManager, ArchivesAdmin, AdminDashboard), update AiGenerator to support archiveId query param, wire all routes in App.jsx, expand DashboardLayout sidebar menu with role-based items, and append CSS classes.",
-  "status": "pending",
-  "feature_order": ["FEAT-001", "FEAT-002"],
-  "blocked_reason": null
-}
