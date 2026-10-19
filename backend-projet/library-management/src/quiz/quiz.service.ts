@@ -10,12 +10,22 @@ import { UpdateQuestionDto } from './dto/update-question.dto.js';
 import { ImportQuizDto } from './dto/import-quiz.dto.js';
 import { Quiz } from './entities/quiz.entity.js';
 import { Question } from './entities/question.entity.js';
+import { Persist } from '../db/persist.js';
 
 @Injectable()
 export class QuizService {
   private quizzes: Quiz[] = [];
   private nextQuizId = 1;
   private nextQuestionId = 1;
+
+  constructor() {
+    Persist.register('quizzes', () => this.quizzes, (v: Quiz[]) => {
+      this.quizzes = v;
+      this.nextQuizId = v.length > 0 ? Math.max(...v.map(q => q.id)) + 1 : 1;
+      const allQuestions = v.flatMap(q => q.questions || []);
+      this.nextQuestionId = allQuestions.length > 0 ? Math.max(...allQuestions.map(q => q.id)) + 1 : 1;
+    });
+  }
 
   // ─────────────────────────────────────────────────────
   // CRUD QUIZ

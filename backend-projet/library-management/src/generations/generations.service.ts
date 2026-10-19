@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Persist } from '../db/persist.js';
 
 export interface Generation {
   id: number;
@@ -12,6 +13,12 @@ export interface Generation {
 @Injectable()
 export class GenerationsService {
   private generations: Generation[] = [];
+
+  constructor() {
+    Persist.register('generations', () => this.generations, (v) => {
+      this.generations = v;
+    });
+  }
 
   findAll(page = 1, limit = 20): {
     data: Generation[];

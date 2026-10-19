@@ -8,6 +8,7 @@ import { join } from 'path';
 import * as mammoth from 'mammoth';
 import { Archive } from './entities/archive.entity.js';
 import { CreateArchiveDto } from './dto/create-archive.dto.js';
+import { Persist } from '../db/persist.js';
 
 @Injectable()
 export class ArchiveService {
@@ -20,6 +21,10 @@ export class ArchiveService {
     if (!existsSync(this.uploadDir)) {
       mkdirSync(this.uploadDir, { recursive: true });
     }
+    Persist.register('archives', () => this.archives, (v: Archive[]) => {
+      this.archives = v;
+      this.nextId = v.length > 0 ? Math.max(...v.map(a => a.id)) + 1 : 1;
+    });
   }
 
   // ─────────────────────────────────────────────────────

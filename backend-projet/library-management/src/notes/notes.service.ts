@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Persist } from '../db/persist.js';
 
 export interface Note {
   id: number;
@@ -13,6 +14,13 @@ export interface Note {
 export class NotesService {
   private notes: Note[] = [];
   private nextId = 1;
+
+  constructor() {
+    Persist.register('notes', () => this.notes, (v: Note[]) => {
+      this.notes = v;
+      this.nextId = v.length > 0 ? Math.max(...v.map(n => n.id)) + 1 : 1;
+    });
+  }
 
   findAllForUser(userId: number): Note[] {
     return this.notes.filter((n) => n.userId === userId);

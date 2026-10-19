@@ -5,6 +5,7 @@ import { AppModule } from './app.module.js';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from './auth/guards/roles.guard.js';
 import { AuthService } from './auth/auth.service.js';
+import { Persist } from './db/persist.js';
 
 async function bootstrap() {
   const app: any = await NestFactory.create(AppModule);
@@ -64,6 +65,13 @@ async function bootstrap() {
     // Déjà existant — pas d'action nécessaire
     console.log('ℹ️  Compte admin déjà existant.');
   }
+
+  // ── Charger les données persistées ─────────────────────
+  Persist.loadAll();
+
+  // ── Sauvegarder les données à l'arrêt du serveur ────────
+  process.on('SIGINT', () => { Persist.saveAll(); process.exit(0); });
+  process.on('SIGTERM', () => { Persist.saveAll(); process.exit(0); });
 
   await app.listen(process.env.PORT ?? 3000);
 }

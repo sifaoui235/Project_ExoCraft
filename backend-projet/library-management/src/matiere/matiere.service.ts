@@ -2,12 +2,22 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { CreateMatiereDto } from './dto/create-matiere.dto.js';
 import { UpdateMatiereDto } from './dto/update-matiere.dto.js';
 import { Matiere, MatiereDocument } from './entities/matiere.entity.js';
+import { Persist } from '../db/persist.js';
 
 @Injectable()
 export class MatiereService {
   private matieres: Matiere[] = [];
   private nextId = 1;
   private nextDocId = 1;
+
+  constructor() {
+    Persist.register('matieres', () => this.matieres, (v: Matiere[]) => {
+      this.matieres = v;
+      this.nextId = v.length > 0 ? Math.max(...v.map(m => m.id)) + 1 : 1;
+      const allDocs = v.flatMap(m => m.documents || []);
+      this.nextDocId = allDocs.length > 0 ? Math.max(...allDocs.map(d => d.id)) + 1 : 1;
+    });
+  }
 
   create(createMatiereDto: CreateMatiereDto): Matiere {
     const existante = this.matieres.find(

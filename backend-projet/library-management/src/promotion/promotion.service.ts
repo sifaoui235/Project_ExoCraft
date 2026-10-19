@@ -2,11 +2,19 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { CreatePromotionDto } from './dto/create-promotion.dto.js';
 import { UpdatePromotionDto } from './dto/update-promotion.dto.js';
 import { Promotion } from './entities/promotion.entity.js';
+import { Persist } from '../db/persist.js';
 
 @Injectable()
 export class PromotionService {
   private promotions: Promotion[] = [];
   private nextId = 1;
+
+  constructor() {
+    Persist.register('promotions', () => this.promotions, (v: Promotion[]) => {
+      this.promotions = v;
+      this.nextId = v.length > 0 ? Math.max(...v.map(p => p.id)) + 1 : 1;
+    });
+  }
 
   create(dto: CreatePromotionDto): Promotion {
     const newPromotion: Promotion = {

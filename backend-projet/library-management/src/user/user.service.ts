@@ -1,11 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { User } from './entities/user.entity.js';
+import { Persist } from '../db/persist.js';
 
 @Injectable()
 export class UserService {
   private users: User[] = [];
   private nextId = 1;
+
+  constructor() {
+    Persist.register('users', () => this.users, (v: User[]) => {
+      this.users = v;
+      this.nextId = v.length > 0 ? Math.max(...v.map(u => u.id)) + 1 : 1;
+    });
+  }
 
   create(data: {
     nom: string;

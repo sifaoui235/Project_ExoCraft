@@ -8,11 +8,19 @@ import { CreateContentDto } from './dto/create-content.dto.js';
 import { UpdateContentDto } from './dto/update-content.dto.js';
 import { FilterContentDto } from './dto/filter-content.dto.js';
 import { Content } from './entities/content.entity.js';
+import { Persist } from '../db/persist.js';
 
 @Injectable()
 export class ContentService {
   private contents: Content[] = [];
   private nextId = 1;
+
+  constructor() {
+    Persist.register('contents', () => this.contents, (v: Content[]) => {
+      this.contents = v;
+      this.nextId = v.length > 0 ? Math.max(...v.map(c => c.id)) + 1 : 1;
+    });
+  }
 
   // ─────────────────────────────────────────────────────
   // CRUD
