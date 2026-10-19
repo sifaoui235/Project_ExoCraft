@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateMatiereDto } from './dto/create-matiere.dto.js';
 import { UpdateMatiereDto } from './dto/update-matiere.dto.js';
-import { Matiere } from './entities/matiere.entity.js';
+import { Matiere, MatiereDocument } from './entities/matiere.entity.js';
 
 @Injectable()
 export class MatiereService {
   private matieres: Matiere[] = [];
   private nextId = 1;
+  private nextDocId = 1;
 
   create(createMatiereDto: CreateMatiereDto): Matiere {
     const existante = this.matieres.find(
@@ -19,6 +20,9 @@ export class MatiereService {
     const newMatiere: Matiere = {
       id: this.nextId++,
       nom: createMatiereDto.nom,
+      enseignantsCount: 0,
+      promoIds: createMatiereDto.promoIds || [],
+      documents: [],
       description: createMatiereDto.description,
     };
 
@@ -41,11 +45,10 @@ export class MatiereService {
   update(id: number, updateMatiereDto: UpdateMatiereDto): Matiere {
     const matiere = this.findOne(id);
 
-    // Vérifier doublon de nom si le nom est modifié
     if (updateMatiereDto.nom) {
       const doublon = this.matieres.find(
         (m) =>
-          m.nom.toLowerCase() === updateMatiereDto.nom!.toLowerCase() &&
+          m.nom.toLowerCase() === (updateMatiereDto.nom as string).toLowerCase() &&
           m.id !== id,
       );
       if (doublon) {
@@ -64,5 +67,32 @@ export class MatiereService {
     }
     const [removed] = this.matieres.splice(index, 1);
     return removed;
+  }
+
+  // ── Documents ─────────────────────────────────────────────────────────────
+  addDocument(matiereId: number, doc: Omit<MatiereDocument, 'id' | 'uploadedAt'>): MatiereDocument {
+    const matiere = this.findOne(matiereId);
+    const newDoc: MatiereDocument = {
+      ...doc,
+      id: this.nextDocId++,
+      uploadedAt: new Date().toISOString(),
+    };
+    matiere.documents.push(newDoc);
+    return newDoc;
+  }
+
+  updateDocument(matiereId: number, docId: number, data: Partial<MatiereDocument>): MatiereDocument {
+    const matiere = this.findOne(matiereId);
+    const doc = matiere.documents.find((d) => d.id === docId);
+    if (!doc) throw new NotFoundException(`Document ${docId} introuvable`);
+    Object.assign(doc, data);
+    return doc;
+  }
+
+  deleteDocument(matiereId: number, docId: number): void {
+    const matiere = this.findOne(matiereId);
+    const index = matiere.documents.findIndex((d) => d.id === docId);
+    if (index === -1) throw new NotFoundException(`Document ${docId} introuvable`);
+    matiere.documents.splice(index, 1);
   }
 }

@@ -1,13 +1,35 @@
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreatePromotionDto {
   @IsString()
-  @IsNotEmpty({ message: 'Le nom de la promotion est obligatoire' })
-  @MaxLength(100)
+  @IsNotEmpty()
   nom: string;
 
   @IsString()
   @IsOptional()
-  @MaxLength(500)
-  description: string;
+  code?: string;
+
+  @IsString()
+  @IsOptional()
+  niveau?: string;
+
+  @IsString()
+  @IsOptional()
+  type?: string;
+
+  @IsString()
+  @IsOptional()
+  specialite?: string | null;
+
+  @IsString()
+  @IsOptional()
+  semestre?: string;
+
+  @IsString()
+  @IsOptional()
+  etablissementType?: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
 }

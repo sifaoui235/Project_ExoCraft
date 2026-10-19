@@ -1,13 +1,15 @@
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateMatiereDto {
   @IsString()
-  @IsNotEmpty({ message: 'Le nom de la matière est obligatoire' })
-  @MaxLength(100)
+  @IsNotEmpty()
   nom: string;
+
+  @IsArray()
+  @IsOptional()
+  promoIds?: number[];
 
   @IsString()
   @IsOptional()
-  @MaxLength(500)
-  description: string;
+  description?: string;
 }

@@ -9,16 +9,17 @@ export class PromotionService {
   private nextId = 1;
 
   create(dto: CreatePromotionDto): Promotion {
-    const existante = this.promotions.find(
-      (p) => p.nom.toLowerCase() === dto.nom.toLowerCase(),
-    );
-    if (existante) {
-      throw new ConflictException(`La promotion "${dto.nom}" existe déjà`);
-    }
     const newPromotion: Promotion = {
-      id: this.nextId++,
-      nom: dto.nom,
-      description: dto.description,
+      id:                this.nextId++,
+      nom:               dto.nom,
+      code:              dto.code              ?? '',
+      niveau:            dto.niveau            ?? '4eme',
+      type:              dto.type              ?? 'general',
+      specialite:        dto.specialite        ?? null,
+      semestre:          dto.semestre          ?? 'S1',
+      matieres:          [],
+      etablissementType: dto.etablissementType ?? 'cycle_ing',
+      description:       dto.description       ?? '',
     };
     this.promotions.push(newPromotion);
     return newPromotion;
@@ -38,14 +39,6 @@ export class PromotionService {
 
   update(id: number, dto: UpdatePromotionDto): Promotion {
     const promotion = this.findOne(id);
-    if (dto.nom) {
-      const doublon = this.promotions.find(
-        (p) => p.nom.toLowerCase() === dto.nom!.toLowerCase() && p.id !== id,
-      );
-      if (doublon) {
-        throw new ConflictException(`La promotion "${dto.nom}" existe déjà`);
-      }
-    }
     Object.assign(promotion, dto);
     return promotion;
   }
