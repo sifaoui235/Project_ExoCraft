@@ -11,10 +11,14 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  Res,
+  NotFoundException,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
+import { existsSync } from 'fs';
 import { ArchiveService } from './archive.service.js';
 import { CreateArchiveDto } from './dto/create-archive.dto.js';
 
@@ -73,6 +77,16 @@ export class ArchiveController {
     const mat = matieres ? matieres.split(',') : [];
     const pro = promotions ? promotions.split(',') : [];
     return this.archiveService.findForEnseignant(mat, pro);
+  }
+
+  // GET /archives/:id/download — télécharger le fichier
+  @Get(':id/download')
+  async download(@Param('id') id: string, @Res() res: Response) {
+    const archive = this.archiveService.findOne(+id);
+    if (!archive.cheminFichier || !existsSync(archive.cheminFichier)) {
+      throw new NotFoundException('Fichier introuvable sur le serveur');
+    }
+    res.sendFile(archive.cheminFichier);
   }
 
   // GET /archives/:id

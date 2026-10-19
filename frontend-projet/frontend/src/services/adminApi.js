@@ -185,18 +185,26 @@ export const archivesApi = {
           )
         ).toString()
       : ''
-    return request(`/archives${q ? `?${q}` : ''}`)
+    // Le backend retourne { data, total, page, limit } — on extrait data[]
+    return request(`/archives${q ? `?${q}` : ''}`).then(res => {
+      if (Array.isArray(res)) return res
+      if (res && Array.isArray(res.data)) return res.data
+      return []
+    })
   },
   upload(file, meta) {
+    // Le backend attend POST /archives/upload avec champ 'fichier'
     const fd = new FormData()
-    fd.append('file', file)
-    Object.entries(meta).forEach(([k, v]) => fd.append(k, v))
-    return request('/archives', { method: 'POST', body: fd })
+    fd.append('fichier', file)          // champ 'fichier' (pas 'file')
+    fd.append('matiere', meta.matiere)
+    fd.append('promotion', meta.promo)  // champ 'promotion'
+    return request('/archives/upload', { method: 'POST', body: fd })
   },
   delete(id) {
     return request(`/archives/${id}`, { method: 'DELETE' })
   },
   downloadUrl(id) {
+    // Ouvre le téléchargement direct via le backend
     return `${window.location.origin}/api/archives/${id}/download?token=${getToken()}`
   },
 }

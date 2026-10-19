@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service.js';
 import { ContentService } from '../content/content.service.js';
 import { QuizService } from '../quiz/quiz.service.js';
@@ -24,7 +25,7 @@ export class AdminService {
   getDashboard() {
     const users       = this.userService.findAll();
     const enseignants = users.filter((u) => u.role === 'enseignant');
-    const admins      = users.filter((u) => u.role === 'administrateur');
+    const admins      = users.filter((u) => u.role === 'administrateur' || u.role === 'admin');
 
     const allContents = this.contentService.findAll({});
     const allQuizzes  = this.quizService.findAll();
@@ -83,11 +84,60 @@ export class AdminService {
   // ─────────────────────────────────────────────────────
 
   getAllUsers() {
-    return this.userService.findAll();
+    return this.userService.findAll().map(({ motDePasseHash: _pwd, ...safe }) => safe);
   }
 
   getUserById(id: number) {
-    return this.userService.findOne(id);
+    const user = this.userService.findOne(id);
+    if (!user) throw new NotFoundException(`Utilisateur ${id} introuvable`);
+    const { motDePasseHash: _pwd, ...safe } = user;
+    return safe;
+  }
+
+  async createUser(data: {
+    nom: string;
+    prenom: string;
+    email: string;
+    motDePasse: string;
+    role: string;
+  }) {
+    const hashedPwd = await bcrypt.hash(data.motDePasse, 10);
+    const user = this.userService.create({
+      ...data,
+      motDePasse: hashedPwd,
+    });
+    const { motDePasseHash: _pwd, ...safe } = user;
+    return safe;
+  }
+
+  async updateUser(id: number, data: any) {
+    if (data.motDePasse) {
+      data.motDePasseHash = await bcrypt.hash(data.motDePasse, 10);
+      delete data.motDePasse;
+    }
+    const user = this.userService.update(id, data);
+    if (!user) throw new NotFoundException(`Utilisateur ${id} introuvable`);
+    const { motDePasseHash: _pwd, ...safe } = user;
+    return safe;
+  }
+
+  toggleUserStatus(id: number) {
+    const user = this.userService.findOne(id);
+    if (!user) throw new NotFoundException(`Utilisateur ${id} introuvable`);
+    const newActif = user.actif === false ? true : false;
+    const updated = this.userService.update(id, { actif: newActif } as any);
+    if (!updated) throw new NotFoundException(`Utilisateur ${id} introuvable`);
+    const { motDePasseHash: _pwd, ...safe } = updated;
+    return safe;
+  }
+
+  promoteUser(id: number) {
+    const user = this.userService.findOne(id);
+    if (!user) throw new NotFoundException(`Utilisateur ${id} introuvable`);
+    const updated = this.userService.update(id, { role: 'administrateur' } as any);
+    if (!updated) throw new NotFoundException(`Utilisateur ${id} introuvable`);
+    const { motDePasseHash: _pwd, ...safe } = updated;
+    return safe;
   }
 
   deleteUser(id: number) {

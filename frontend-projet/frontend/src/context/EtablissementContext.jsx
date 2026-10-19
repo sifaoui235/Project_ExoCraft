@@ -1,5 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { promosApi, matieresApi } from '../services/adminApi'
+import { matieresApi } from '../services/adminApi'
+
+// Requête directe pour les promotions (route backend = /promotions, pas /promos)
+async function fetchPromotions() {
+  const token = localStorage.getItem('exocraft_token')
+  const res = await fetch('/api/promotions', {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) return []
+  return res.json()
+}
 
 const EtabContext = createContext({
   type: 'cycle_ing',
@@ -16,7 +26,7 @@ export function EtabProvider({ type = 'cycle_ing', children }) {
 
   async function fetchData() {
     try {
-      const [p, m] = await Promise.all([promosApi.list(), matieresApi.list()])
+      const [p, m] = await Promise.all([fetchPromotions(), matieresApi.list()])
       setPromos(p)
       setMatieres(m)
     } catch (err) {

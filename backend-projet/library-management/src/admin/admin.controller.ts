@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  Post,
+  Put,
   Delete,
   Param,
   Body,
@@ -27,16 +29,46 @@ export class AdminController {
     return this.adminService.getAllUsers();
   }
 
+  // POST /admin/users — créer un utilisateur
+  @Post('users')
+  createUser(@Body() body: {
+    nom: string;
+    prenom: string;
+    email: string;
+    motDePasse: string;
+    role: string;
+  }) {
+    return this.adminService.createUser(body);
+  }
+
   // GET /admin/users/:id
   @Get('users/:id')
   getUserById(@Param('id') id: string) {
     return this.adminService.getUserById(+id);
   }
 
+  // PUT /admin/users/:id — modifier un utilisateur
+  @Put('users/:id')
+  updateUser(@Param('id') id: string, @Body() body: any) {
+    return this.adminService.updateUser(+id, body);
+  }
+
   // DELETE /admin/users/:id
   @Delete('users/:id')
   deleteUser(@Param('id') id: string) {
     return this.adminService.deleteUser(+id);
+  }
+
+  // PATCH /admin/users/:id/status — toggle actif/inactif
+  @Patch('users/:id/status')
+  toggleStatus(@Param('id') id: string) {
+    return this.adminService.toggleUserStatus(+id);
+  }
+
+  // PATCH /admin/users/:id/promote — promouvoir en admin
+  @Patch('users/:id/promote')
+  promoteUser(@Param('id') id: string) {
+    return this.adminService.promoteUser(+id);
   }
 
   // PATCH /admin/users/:id/matieres

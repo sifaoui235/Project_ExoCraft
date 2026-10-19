@@ -12,6 +12,11 @@ import { ContentModule } from './content/content.module.js';
 import { ArchiveModule } from './archive/archive.module.js';
 import { ExportModule } from './export/export.module.js';
 import { AdminModule } from './admin/admin.module.js';
+import { StatsModule } from './stats/stats.module.js';
+import { AssociationsModule } from './associations/associations.module.js';
+import { ProfileModule } from './profile/profile.module.js';
+import { NotesModule } from './notes/notes.module.js';
+import { GenerationsModule } from './generations/generations.module.js';
 
 @Module({
   imports: [
@@ -26,6 +31,11 @@ import { AdminModule } from './admin/admin.module.js';
     ArchiveModule,
     ExportModule,
     AdminModule,
+    StatsModule,
+    AssociationsModule,
+    ProfileModule,
+    NotesModule,
+    GenerationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
