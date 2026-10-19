@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import Home from "./pages/home";
 import Login from "./pages/Login";
 import Register from "./pages/register";
@@ -10,6 +11,7 @@ import QuizManager from "./pages/QuizManager";
 import ContentManager from "./pages/ContentManager";
 import ArchivesAdmin from "./pages/ArchivesAdmin";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLayout from "./pages/admin/AdminLayout";
 import "./App.css";
 import "./layout.css";
 import "./workspace.css";
@@ -34,7 +36,8 @@ export default function App() {
         <Route path="/quiz" element={<ProtectedRoute><QuizManager /></ProtectedRoute>} />
         <Route path="/contents" element={<ProtectedRoute><ContentManager /></ProtectedRoute>} />
         <Route path="/archives-admin" element={<ProtectedRoute><ArchivesAdmin /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin-legacy" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>} />
         {legacyPaths.map(path => <Route key={path} path={path} element={<ProtectedRoute><Navigate to="/dashboard" replace /></ProtectedRoute>} />)}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
