@@ -14,6 +14,9 @@ import { Content } from '../content/entities/content.entity.js';
 import { Quiz } from '../quiz/entities/quiz.entity.js';
 import { NiveauQuiz, VisibiliteQuiz } from '../quiz/dto/create-quiz.dto.js';
 
+// Partie du cours envoyée à l'IA (pour ne pas dépasser son contexte)
+const MAX_TEXTE_POUR_IA = 8000;
+
 @Injectable()
 export class AiService {
   private readonly client: OpenAI;
@@ -273,12 +276,13 @@ Si on te demande de générer du contenu pédagogique, tu le fais directement.`,
       );
     }
 
-    return { texte: texte.substring(0, 8000), nom: file.originalname };
+    // Texte complet, sans limite. La limite pour l'IA est appliquée dans buildPrompt.
+    return { texte, nom: file.originalname };
   }
 
   private buildPrompt(dto: GenerateContentDto): string {
     const base = dto.courseFourni
-      ? `Voici le contenu du cours fourni :\n${dto.courseFourni}\n\n`
+      ? `Voici le contenu du cours fourni :\n${dto.courseFourni.substring(0, MAX_TEXTE_POUR_IA)}\n\n`
       : `Génère à partir du thème suivant : "${dto.theme}" en matière de "${dto.matiere}".\n\n`;
 
     switch (dto.type) {

@@ -10,6 +10,9 @@ import { Persist } from './db/persist.js';
 async function bootstrap() {
   const app: any = await NestFactory.create(AppModule);
 
+  // Les cours importés depuis un PDF/Word peuvent dépasser la limite par défaut (100 ko)
+  app.useBodyParser('json', { limit: '50mb' });
+
   app.enableCors({
     origin: [
       'http://localhost:5173',
