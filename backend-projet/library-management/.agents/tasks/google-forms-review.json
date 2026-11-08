@@ -1,0 +1,27 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "id": 1,
+      "label": "Answer extraction order not guaranteed",
+      "description": "Object.values(response.answers) iterates by insertion order of JS object keys, but the Google Forms API keys answers by item ID (GUID), not by position. The textAnswers filter may return fields in a different order, silently producing wrong names and matricules.",
+      "action": "Store the item IDs for Nom and Matricule (from forms.forms.get already called in exportQuiz, via items[].questionItem.question.questionId) as googleNomItemId and googleMatriculeItemId on the Quiz entity, then index directly into response.answers[nomItemId] in syncNotes.",
+      "severity": "blocking"
+    },
+    {
+      "id": 2,
+      "label": "mapGoogleError double-throw pattern",
+      "description": "Both catch blocks call this.mapGoogleError(err) then follow with throw err. For unknown errors mapGoogleError re-throws and the outer throw never runs; for known statuses the outer throw is dead code. The pattern creates a confusing read path.",
+      "action": "Remove the trailing 'throw err' lines from both catch sites — TypeScript accepts mapGoogleError's 'never' return type as exhaustion proof.",
+      "severity": "non-blocking"
+    },
+    {
+      "id": 3,
+      "label": "prenom field repurposed to carry matricule",
+      "description": "syncNotes stores the student matricule in QuizResultat.prenom. This field is shared with the share-link submission path (soumettre) which writes a genuine first name. Any code iterating quiz.resultats across both paths mixes semantics silently.",
+      "action": "Add matricule?: string to QuizResultat and populate it in syncNotes. Leave prenom empty or use it for its intended purpose.",
+      "severity": "blocking"
+    }
+  ],
+  "reviewDoc": "c:\\Users\\ASUS\\Desktop\\projet-ExoCraft\\backend-projet\\library-management\\.agents\\tasks\\google-forms-review.md"
+}

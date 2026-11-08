@@ -23,7 +23,7 @@ services:
     env_file:
       - .env
     environment:
-      PORT: 3000
+      PORT: 8080
     volumes:
       - exo-uploads:/app/uploads   # fichiers déposés
     networks:

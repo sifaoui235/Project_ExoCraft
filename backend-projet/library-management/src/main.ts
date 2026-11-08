@@ -69,6 +69,6 @@ async function bootstrap() {
     console.log('ℹ️  Compte admin déjà existant.');
   }
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3001);
 }
 await bootstrap();

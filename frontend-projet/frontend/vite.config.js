@@ -8,7 +8,7 @@ export default defineConfig({
     proxy: {
       // Toutes les requêtes /api sont redirigées vers le backend NestJS
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
       },
     },
