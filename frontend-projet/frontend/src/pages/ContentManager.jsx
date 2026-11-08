@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import { contentApi, exportApi } from '../services/api';
@@ -32,9 +32,11 @@ function ContentForm({ initial, onSaved, onCancel }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [extracting, setExtracting] = useState(false);
-  const [extractedFile, setExtractedFile] = useState('');
   const [pendingFile, setPendingFile] = useState(null); // fichier original à conserver
   const fileInputRef = useRef(null);
+  // Adresse locale du fichier choisi : permet de le télécharger avant l'enregistrement
+  const pendingUrl = useMemo(() => (pendingFile ? URL.createObjectURL(pendingFile) : ''), [pendingFile]);
+  useEffect(() => () => { if (pendingUrl) URL.revokeObjectURL(pendingUrl); }, [pendingUrl]);
 
   const update = (e) => setForm((cur) => ({ ...cur, [e.target.name]: e.target.value }));
 
@@ -58,7 +60,6 @@ function ContentForm({ initial, onSaved, onCancel }) {
       }
       const data = await res.json();
       setForm((cur) => ({ ...cur, contenu: data.texte }));
-      setExtractedFile(file.name);
       setPendingFile(file);
     } catch (err) {
       setError("Impossible d'extraire le texte : " + err.message);
@@ -165,13 +166,6 @@ function ContentForm({ initial, onSaved, onCancel }) {
                 }}>
                 {extracting ? '⏳ Extraction...' : '📎 Importer un PDF ou Word'}
               </button>
-              {extractedFile && (
-                <span style={{ fontSize: 12, color: '#00b894', fontWeight: 600 }}>✓ {extractedFile} (sera conservé)</span>
-              )}
-              {!extractedFile && initial?.fichierNom && (
-                <a href={contentApi.fichierUrl(initial.id)} target="_blank" rel="noreferrer"
-                  style={{ fontSize: 12, color: '#6252ed', fontWeight: 600 }}>📄 {initial.fichierNom}</a>
-              )}
               <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx"
                 style={{ display: 'none' }} onChange={handleFileUpload} />
             </div>
@@ -182,6 +176,19 @@ function ContentForm({ initial, onSaved, onCancel }) {
           </label>
         </div>
 
+        {pendingFile && (
+          <div className="quiz-export-panel" style={{ marginTop: 16 }}>
+            <strong style={{ width: '100%', color: '#4c416d', fontSize: 14 }}>📎 Fichier importé</strong>
+            <a className="quiz-export-btn" style={{ textDecoration: 'none' }}
+              href={pendingUrl} download={pendingFile.name} title="Cliquer pour télécharger">
+              {fileIcon(pendingFile.name)} {pendingFile.name}
+            </a>
+            <span style={{ fontSize: 12, color: '#00b894', fontWeight: 600, alignSelf: 'center' }}>
+              ✓ sera conservé à l'enregistrement
+            </span>
+          </div>
+        )}
+
         {initial?.id && (
           <div className="quiz-export-panel" style={{ marginTop: 20 }}>
             <strong style={{ width: '100%', color: '#4c416d', fontSize: 14 }}>📥 Télécharger</strong>
@@ -189,6 +196,13 @@ function ContentForm({ initial, onSaved, onCancel }) {
               onClick={() => exportApi.download(exportApi.contentPdfUrl(initial.id))}>📄 PDF</button>
             <button type="button" className="quiz-export-btn"
               onClick={() => exportApi.download(exportApi.contentWordUrl(initial.id))}>📝 Word</button>
+            {initial.fichierNom && (
+              <a className="quiz-export-btn" style={{ textDecoration: 'none' }}
+                href={contentApi.fichierUrl(initial.id)} download={initial.fichierNom}
+                title="Télécharger le fichier d'origine">
+                {fileIcon(initial.fichierNom)} Fichier original
+              </a>
+            )}
           </div>
         )}
 
@@ -203,6 +217,9 @@ function ContentForm({ initial, onSaved, onCancel }) {
     </div>
   );
 }
+
+// Icône selon le type du fichier d'origine
+const fileIcon = (nom = '') => (nom.toLowerCase().endsWith('.pdf') ? '📕' : '📘');
 
 // ── Vue lecture seule ─────────────────────────────────────────────────────────
 function ContentView({ item, onBack }) {
@@ -220,9 +237,10 @@ function ContentView({ item, onBack }) {
         </div>
         <h2 style={{ marginBottom: 16 }}>{item.titre}</h2>
         {item.fichierNom && (
-          <a className="workspace-button secondary" href={contentApi.fichierUrl(item.id)} target="_blank" rel="noreferrer"
-            style={{ display: 'inline-block', marginBottom: 16, textDecoration: 'none' }}>
-            📄 Télécharger le fichier original ({item.fichierNom})
+          <a className="quiz-export-btn" href={contentApi.fichierUrl(item.id)} download={item.fichierNom}
+            style={{ display: 'inline-block', marginBottom: 16, textDecoration: 'none' }}
+            title="Cliquer pour télécharger">
+            {fileIcon(item.fichierNom)} {item.fichierNom}
           </a>
         )}
         <div className="workspace-preview-body" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>
@@ -412,6 +430,13 @@ export default function ContentManager() {
                 </div>
                 <h3>{c.titre}</h3>
                 <p>{c.matiere}</p>
+                {c.fichierNom && (
+                  <a className="quiz-export-btn" href={contentApi.fichierUrl(c.id)} download={c.fichierNom}
+                    style={{ display: 'inline-block', textDecoration: 'none', margin: '6px 0' }}
+                    title="Télécharger le fichier original">
+                    {fileIcon(c.fichierNom)} {c.fichierNom}
+                  </a>
+                )}
                 <small>{c.dateCreation ? new Date(c.dateCreation).toLocaleDateString('fr-FR') : ''}</small>
                 <div className="workspace-card-actions">
                   <button onClick={() => openView(c.id)}>Voir</button>
